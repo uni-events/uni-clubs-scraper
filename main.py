@@ -152,6 +152,10 @@ def FetchClubPage(club_names, api):
             f"experience issues while collecting some clubs data")
         LogErrors("ClubData.json",
                   "error reached with following club names", bad_requests)
+    # gets rid of last "," in file that breaks json
+    with open('data/clubData.json', 'rb+') as file:
+        file.seek(-1, 2)
+        file.truncate()
     with open("data/clubData.json", "a") as file:
         file.write("]")
     return json_data
@@ -167,7 +171,10 @@ def WriteJsonToFile(json_data, file_name):
 def cleanBrokenJSON():
     broken_file = open("data/clubData.json", "rt")
     data = broken_file.read()
-    data = data.replace("\'", "'")
+    data = data.replace(r"\'", r"'")
+    data = data.replace("\\\\\"", "\\\"")
+    # unicodeescape errors fixed after prev replace
+    data = data.replace("\\x", "\\\\x")
     broken_file.close()
     broken_file = open("data/clubData.json", "wt")
     broken_file.write(data)
@@ -186,6 +193,7 @@ def GetClubData():
 
 def main():
     GetClubData()
+    # cleanBrokenJSON()
 
 
 if __name__ == "__main__":
