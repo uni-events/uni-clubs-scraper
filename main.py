@@ -9,6 +9,7 @@ import re
 from webdriver_manager.chrome import ChromeDriverManager
 import requests
 import json
+from datetime import date
 
 
 def GetHTML(link):
@@ -49,7 +50,9 @@ def cleanFileCode():
 def getFileData(file_name):
     # open and read the file after the overwriting:
     f = open(file_name, "r")
-    return f.read()
+    data = f.read()
+    f.close()
+    return data
 
 
 def writeToFileHTML(htmlCode):
@@ -57,6 +60,7 @@ def writeToFileHTML(htmlCode):
     htmlCode = soup.decode(htmlCode)
     f = open("code.txt", "w")
     f.write(htmlCode)
+    f.close()
 
 
 def GetClubNames(htmlCode):
@@ -85,13 +89,39 @@ def FindMatchesClubNames(htmlCode):
 
 
 def FetchClubData(club_names, api):
-    f =
+    # cleans the existing data in the file
+    with open('data/clubData.json', 'w') as file:
+        file.write("[]")
+        file.close()
+
+    with open("data/clubData.json", "r") as file:
+        data = json.load(file)
+    bad_requests = []
+
     for name in club_names:
         response = requests.get(f"{api}", params={"id": name})
         if response.status_code == 200:
-            response.json()
+            data.append(response.json())
+            print(f"fetched data for {name}")
         else:
-            print(f"error reached with request: {response.status_code}")
+            bad_requests.append(name)
+            print(
+                f"error reached with request: {response.status_code} while fetching data for {name}")
+
+    with open("data/clubData.json", "w") as file:
+        json.dump(data, file)
+        file.close()
+    print("completed fetching club data")
+    if len(bad_requests) > 0:
+        print(
+            f"experience issues while collecting the following clubs data: {bad_requests}")
+        # logging errors and data
+        today = date.today()
+        with open(f"logs/{today}_ClubData.json", "w") as log_file:
+            log_message = {
+                "error": "bad_request while fetching club data", "data": bad_requests}
+            json.dump(log_message, log_file)
+            print(f"logged errors in file {log_file.name}")
 
 
 def GetClubData():
