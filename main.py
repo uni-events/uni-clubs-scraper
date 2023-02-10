@@ -64,17 +64,6 @@ def writeToFileHTML(htmlCode):
     f.close()
 
 
-def GetClubNames(htmlCode):
-    # regex = "<h3 class=\"mb-1 flex max-h-12 w-full items-center font-ProximaNovaMedium text-base line-clamp-1 md:line-clamp-2\">"
-    soup = BeautifulSoup(htmlCode, features="html.parser")
-    htmlCode = soup.decode(htmlCode)
-
-    # pattern = r"<h3 class =\"mb-1 flex max-h-12 w-full items-center font-ProximaNovaMedium text-base line-clamp-1 md: line-clamp-2\">"
-    # pattern = re.compile(pattern)
-    matches = re.search(r"AD\ Space", htmlCode)
-    print(matches)
-
-
 # FindMatchesClubNames
 # params: htmlCode ( raw html code *not decoded )
 # returns: club_names ( list of club names )
@@ -88,37 +77,6 @@ def FindMatchesClubNames(htmlCode):
         match = re.sub(r"&amp;", "&", match)
         club_names.append(match)
     return club_names
-
-
-def FetchClubData(club_names, api):
-    # cleans the existing data in the file
-    with open('data/clubData.json', 'w') as file:
-        file.write("[]")
-        file.close()
-
-    with open("data/clubData.json", "r") as file:
-        data = json.load(file)
-    bad_requests = []
-
-    for name in club_names:
-        response = requests.get(f"{api}", params={"id": name})
-        if response.status_code == 200:
-            data.append(response.json())
-            print(f"fetched data for {name}")
-        else:
-            bad_requests.append(name)
-            print(
-                f"error reached with request: {response.status_code} while fetching data for {name}")
-
-    with open("data/clubData.json", "w") as file:
-        json.dump(data, file)
-        file.close()
-    print("completed fetching club data")
-    if len(bad_requests) > 0:
-        print(
-            f"experience issues while collecting some clubs data")
-        LogErrors("ClubData.json",
-                  "error reached with following club names", bad_requests)
 
 
 def LogErrors(file_name, error_message, data_to_log):
@@ -161,13 +119,6 @@ def FetchClubPage(club_names, api):
     return json_data
 
 
-def WriteJsonToFile(json_data, file_name):
-    with open(f"{file_name}", "w") as file:
-        file.write("[]")
-        json.dump(json_data, file)
-        print(f"wrote data to file: {file.name}")
-
-
 def cleanBrokenJSON():
     broken_file = open("data/clubData.json", "rt")
     data = broken_file.read()
@@ -185,7 +136,7 @@ def GetClubData():
     htmlCode = getFileData("rawClubDataHTML.txt")
     club_names = FindMatchesClubNames(htmlCode)
     club_names = CleanClubNameURLStr(club_names)
-    json_data = FetchClubPage(
+    FetchClubPage(
         club_names, "https://arc-discovery.linkupevents.com/club")
     cleanBrokenJSON()
     # WriteJsonToFile(json_data, "data/clubData.json")
