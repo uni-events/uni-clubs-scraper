@@ -27,7 +27,7 @@ def GetHTML(link):
 
     driver.get(link)
 
-    get_url = driver.current_url
+    get_url = driver.current_urls
 
     wait.until(EC.url_to_be(link))
 
