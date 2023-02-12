@@ -20,8 +20,8 @@ def GetHTML(link):
     chrome_options.add_experimental_option("prefs", pref)
 
     driver = webdriver.Chrome(
-        options=chrome_options,
-        service=Service(ChromeDriverManager().install()))
+        options=chrome_options, service=Service(ChromeDriverManager().install())
+    )
 
     wait = WebDriverWait(driver, 60)
 
@@ -82,8 +82,7 @@ def FindMatchesClubNames(htmlCode):
 def LogErrors(file_name, error_message, data_to_log):
     today = date.today()
     with open(f"logs/{today}-{file_name}", "w") as log_file:
-        log_message = {
-            "error": error_message, "data": data_to_log}
+        log_message = {"error": error_message, "data": data_to_log}
         json.dump(log_message, log_file)
         print(f"logged errors in file {log_file.name}")
     return True
@@ -98,20 +97,22 @@ def FetchClubPage(club_names, api):
         response = requests.get(f"{api}/{name}")
         if response.status_code == 200:
             print(f"fetched data for {name}")
-            response_json = getJSONfromHTML(str(response.content))
-            json_data.append(response_json)
+            print(response.content)
+            # response_json = getJSONfromHTML(str(response.content))
+            # json_data.append(response_json)
         else:
             print(
-                f"error reached with request: {response.status_code} while fetching data for {name}")
+                f"error reached with request: {response.status_code} while fetching data for {name}"
+            )
             bad_requests.append(name)
 
     if len(bad_requests) > 0:
-        print(
-            f"experience issues while collecting some clubs data")
-        LogErrors("ClubData.json",
-                  "error reached with following club names", bad_requests)
+        print(f"experience issues while collecting some clubs data")
+        LogErrors(
+            "ClubData.json", "error reached with following club names", bad_requests
+        )
     # gets rid of last "," in file that breaks json
-    with open('data/clubData.json', 'rb+') as file:
+    with open("data/clubData.json", "rb+") as file:
         file.seek(-1, 2)
         file.truncate()
     with open("data/clubData.json", "a") as file:
@@ -123,7 +124,7 @@ def cleanBrokenJSON():
     broken_file = open("data/clubData.json", "rt")
     data = broken_file.read()
     data = data.replace(r"\'", r"'")
-    data = data.replace("\\\\\"", "\\\"")
+    data = data.replace('\\\\"', '\\"')
     # unicodeescape errors fixed after prev replace
     data = data.replace("\\x", "\\\\x")
     broken_file.close()
@@ -136,9 +137,9 @@ def GetClubData():
     htmlCode = getFileData("rawClubDataHTML.txt")
     club_names = FindMatchesClubNames(htmlCode)
     club_names = CleanClubNameURLStr(club_names)
-    FetchClubPage(
-        club_names, "https://arc-discovery.linkupevents.com/club")
-    cleanBrokenJSON()
+    FetchClubPage(club_names, "https://arc-discovery.linkupevents.com/club")
+
+    # cleanBrokenJSON()
     # WriteJsonToFile(json_data, "data/clubData.json")
 
 
