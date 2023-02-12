@@ -97,9 +97,8 @@ def FetchClubPage(club_names, api):
         response = requests.get(f"{api}/{name}")
         if response.status_code == 200:
             print(f"fetched data for {name}")
-            print(response.content)
-            # response_json = getJSONfromHTML(str(response.content))
-            # json_data.append(response_json)
+            response_json = getJSONfromHTML(str(unquote(response.content)))
+            json_data.append(response_json)
         else:
             print(
                 f"error reached with request: {response.status_code} while fetching data for {name}"
